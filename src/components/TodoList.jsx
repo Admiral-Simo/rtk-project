@@ -1,20 +1,42 @@
 import { useState } from "react";
-import { useGetTodosQuery } from "../redux/features/apiSlice";
+import {
+  useGetTodosQuery,
+  useAddTodoMutation,
+  useUpdateTodoMutation,
+  useDeleteTodoMutation,
+} from "../redux/features/apiSlice";
 import TodoItem from "./TodoItem";
 
 const TodoList = () => {
   const [newTodo, setNewTodo] = useState("");
 
+  let {
+    data: todos,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetTodosQuery();
+
+  const [addTodo] = useAddTodoMutation();
+  const [updateTodo] = useUpdateTodoMutation();
+  const [deleteTodo] = useDeleteTodoMutation();
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // addTodo
+    addTodo({ userId: 1, title: newTodo, completed: false });
     setNewTodo("");
   };
 
-  let { data: content } = useGetTodosQuery();
+  let content;
 
-  console.log(content);
-
+  if (isLoading) {
+    content = <p>Loading...</p>;
+  } else if (isSuccess) {
+    content = todos?.map((item) => <TodoItem key={item.id} {...item} />);
+  } else if (isError) {
+    content = <p>{error}</p>;
+  }
   return (
     <main className="max-w-5xl pt-10 text-white mx-auto text-xl">
       <h1 className="text-5xl font-serif font-bold mb-5">Todo List</h1>
@@ -35,11 +57,7 @@ const TodoList = () => {
           Add Todo
         </button>
       </form>
-      <div className="space-y-3">
-        {content.map((item) => (
-          <TodoItem {...item} />
-        ))}
-      </div>
+      <div className="space-y-3">{content}</div>
     </main>
   );
 };
